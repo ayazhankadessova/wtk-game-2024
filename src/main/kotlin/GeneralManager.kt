@@ -1,8 +1,11 @@
 object GeneralManager {
     private val generals: MutableList<General> = mutableListOf()
+    private val lordFactory = LordFactory()
+    private val nonLordFactory = NonLordFactory()
 
     fun addGeneral(general: General) {
         generals.add(general)
+        println("General ${general::class.simpleName} created.")
     }
 
     fun removeGeneral(general: General) {
@@ -12,17 +15,20 @@ object GeneralManager {
     fun getGeneralCount(): Int {
         return generals.size
     }
+
+    fun createGenerals(lords: Int, nonLords: Int) {
+        repeat(lords) {
+            val lord = lordFactory.createRandomGeneral()
+            addGeneral(lord)
+        }
+        repeat(nonLords) {
+            val nonLord = nonLordFactory.createRandomGeneral()
+            addGeneral(nonLord)
+        }
+    }
 }
 
 fun main() {
-    val general1 = General("LIU Bei")
-    val general2 = General("CAO Cao")
-    val general3 = General("SUN Quan")
-
-    GeneralManager.addGeneral(general1)
-    GeneralManager.addGeneral(general2)
-    GeneralManager.addGeneral(general3)
-
-    val generalCount = GeneralManager.getGeneralCount()
-    println("Number of generals: $generalCount")
+    GeneralManager.createGenerals(3, 3)
+    println("Total number of generals: ${GeneralManager.getGeneralCount()}")
 }
