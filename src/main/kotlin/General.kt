@@ -33,3 +33,12 @@ class XiahouDun(player:Player): General("Xiahou Dun",player) {
     override var maxHP = 3
 
 }
+
+
+class GuanYu {
+    val maximumHP = 4
+}
+
+class GuanYuAdapter(private val guanYu: GuanYu,player: Player) : Player, General("Guan Yu", player) {
+    override var maxHP = guanYu.maximumHP
+}
