@@ -1,7 +1,6 @@
 object GeneralManager {
     private val generals: MutableList<General> = mutableListOf()
     private val lordFactory = LordFactory()
-    private val nonLordFactory = NonLordFactory()
 
     fun addGeneral(general: General) {
         generals.add(general)
@@ -16,19 +15,19 @@ object GeneralManager {
         return generals.size
     }
 
-    fun createGenerals(lords: Int, nonLords: Int) {
-        repeat(lords) {
-            val lord = lordFactory.createRandomGeneral()
-            addGeneral(lord)
-        }
-        repeat(nonLords) {
-            val nonLord = nonLordFactory.createRandomGeneral()
-            addGeneral(nonLord)
-        }
+    fun createGenerals( nonLords:Int){
+        val lord = lordFactory.createRandomGeneral(lordFactory.createPlayer(1))
+//        lord.setStrategy(RebelStrategy())
+        generals.add(lord)
+        var  nonLordFactory: NonLordFactory = NonLordFactory(lord.player as Lord)
+
+        for(i in 0 until nonLords)
+        {
+            generals.add(nonLordFactory.createRandomGeneral(nonLordFactory.createPlayer(i+2)))    }
     }
 }
 
 fun main() {
-    GeneralManager.createGenerals(3, 3)
+    GeneralManager.createGenerals(3)
     println("Total number of generals: ${GeneralManager.getGeneralCount()}")
 }

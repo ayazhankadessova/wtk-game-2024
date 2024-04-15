@@ -17,3 +17,19 @@ class CaoCao(player: Player) : General("Cao Cao", player) {
 class SunQuan(player: Player) : General("Sun Quan", player) {
     override var maxHP: Int = 5
 }
+
+class XuChu(player:Player): General("Xu Chu",player) {
+    override var maxHP = 3
+
+}
+
+
+class SimaYi(player:Player): General("Sima Yi",player) {
+    override var maxHP = 3
+
+}
+
+class XiahouDun(player:Player): General("Xiahou Dun",player) {
+    override var maxHP = 3
+
+}
