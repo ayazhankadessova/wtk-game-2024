@@ -28,6 +28,7 @@ object GeneralManager {
 
     fun gameStart()
     {
+        generals[3].setCommand(Acedia(generals[3]))
         println("Turn 1")
         for(general in GeneralManager.generals)
         {

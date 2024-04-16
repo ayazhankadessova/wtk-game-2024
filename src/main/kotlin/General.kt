@@ -3,6 +3,8 @@ abstract class General(val name: String, val player: Player) : Player by player 
 
     var numOfCards:Int = 4
     var skipPlay = false
+    var cardsList: MutableList<Command> = mutableListOf()
+
 
     init {
         println("General $name created.")
@@ -26,7 +28,7 @@ abstract class General(val name: String, val player: Player) : Player by player 
     open fun judgementPhrase()
     {
 
-//        executeCommand()
+        executeCommand()
 
     }
 
@@ -53,6 +55,40 @@ abstract class General(val name: String, val player: Player) : Player by player 
     open fun finalPhrase()
     {
 
+    }
+
+    fun acediaAction()
+    {
+        println(name + " judging the Acedia spell.")
+
+        if(Math.random() < 0.25)
+        {
+            println(name + " dodged the Acedia spell.")
+        }
+        else
+        {
+            println(name + " can't dodge the Acedia spell. Skipping one round of play")
+            skipPlay = true
+        }
+    }
+
+    fun executeCommand() {
+        for (i in cardsList) {
+//            if (i is Acedia) {
+                i.execute()
+//            }
+
+        }
+
+        cardsList.clear()
+
+
+    }
+
+    fun setCommand(command: Command)
+    {
+        cardsList.add(command)
+        println(name + " being placed the Acedia card.")
     }
 
 }
