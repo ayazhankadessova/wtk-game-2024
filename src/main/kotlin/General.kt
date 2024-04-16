@@ -1,9 +1,60 @@
-abstract class General(name: String, val player: Player) : Player by player {
+abstract class General(val name: String, val player: Player) : Player by player {
     open var maxHP: Int = 4
+
+    var numOfCards:Int = 4
+    var skipPlay = false
 
     init {
         println("General $name created.")
         }
+
+    fun playTurn()
+    {
+        preparationPhrase()
+        judgementPhrase()
+        drawPhrase()
+        if (!skipPlay) {
+            playPhrase()
+        }
+//        playPhrase()
+        discardPhrase()
+        finalPhrase()
+    }
+
+    open fun preparationPhrase() {}
+
+    open fun judgementPhrase()
+    {
+
+//        executeCommand()
+
+    }
+
+    open fun drawPhrase()
+    {
+        numOfCards+=2
+        println(name + " draws 2 cards and now has " + numOfCards + " card(s).")
+    }
+    open fun playPhrase()
+    {
+        println(name + " enters the Play Phase")
+//        playNextCard()
+    }
+    open fun discardPhrase()
+    {
+        println(name + " has " + numOfCards + " card(s), current HP is " + currentHP + "." )
+        val discarded:Int = numOfCards - currentHP
+
+        numOfCards = currentHP
+        println(name + " discards " + discarded + " card(s), now has " + numOfCards + " card(s).")
+
+    }
+
+    open fun finalPhrase()
+    {
+
+    }
+
 }
 
 class LiuBei(player: Player) : General("Liu Bei", player) {

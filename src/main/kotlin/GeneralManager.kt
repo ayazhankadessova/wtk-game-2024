@@ -25,9 +25,22 @@ object GeneralManager {
         {
             generals.add(nonLordFactory.createRandomGeneral(nonLordFactory.createPlayer(i+2)))    }
     }
+
+    fun gameStart()
+    {
+        println("Turn 1")
+        for(general in GeneralManager.generals)
+        {
+            general.playTurn()
+        }
+
+
+    }
 }
 
 fun main() {
     GeneralManager.createGenerals(3)
     println("Total number of generals: ${GeneralManager.getGeneralCount()}")
+
+    GeneralManager.gameStart()
 }
