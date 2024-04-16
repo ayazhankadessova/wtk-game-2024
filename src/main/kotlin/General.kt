@@ -84,6 +84,26 @@ class XiahouDun(player:Player): General("Xiahou Dun",player) {
     override var maxHP = 3
 
 }
+class ZhouYu(player:Player): General("Zhou Yu",player) {
+    override var maxHP = 3
+    override fun drawPhrase() {
+        numOfCards+=3
+        println("[Heroism] " + name + " draws 3 cards and now has " + numOfCards + " card(s).")
+
+    }
+
+}
+
+class DiaoChan(player:Player): General("Diao Chan",player) {
+    override var maxHP = 3
+
+    //Beauty Outshining the Moon
+    override fun finalPhrase() {
+        numOfCards++
+        println("[Beauty Outshining the Moon] " + name + " now has " + numOfCards + " card(s)." )
+    }
+
+}
 
 
 class GuanYu {

@@ -31,7 +31,7 @@ class LordFactory: GeneralFactory() {
 open class NonLordFactory(private val lord: Lord) : GeneralFactory()
 {
 
-    private val nonLords = mutableListOf("Xu Chu", "Sima Yi", "Xiahou Dun", "Guan Yu")
+    private val nonLords = mutableListOf("Xu Chu", "Sima Yi", "Xiahou Dun", "Guan Yu", "Zhou Yu", "Diao Chan")
     override fun createRandomGeneral(player: Player):General {
         val name = nonLords.random()
         nonLords.remove(name)
@@ -41,6 +41,8 @@ open class NonLordFactory(private val lord: Lord) : GeneralFactory()
             "Sima Yi" -> SimaYi(player)
             "Xiahou Dun" -> XiahouDun(player)
             "Guan Yu" -> GuanYuAdapter(GuanYu(), player)
+            "Zhou Yu" -> ZhouYu(player)
+            "Diao Chan" -> DiaoChan(player)
             else -> throw IllegalArgumentException("Invalid Name")
         }
         general.currentHP = general.maxHP

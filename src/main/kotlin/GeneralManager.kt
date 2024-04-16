@@ -39,7 +39,7 @@ object GeneralManager {
 }
 
 fun main() {
-    GeneralManager.createGenerals(3)
+    GeneralManager.createGenerals(5)
     println("Total number of generals: ${GeneralManager.getGeneralCount()}")
 
     GeneralManager.gameStart()
