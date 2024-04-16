@@ -19,7 +19,14 @@ object GeneralManager {
         val lord = lordFactory.createRandomGeneral(lordFactory.createPlayer(1))
 //        lord.setStrategy(RebelStrategy())
         generals.add(lord)
-        var  nonLordFactory: NonLordFactory = NonLordFactory(lord.player as Lord)
+
+        var  nonLordFactory: NonLordFactory
+
+        if(lord is WeiGeneral)
+        {        nonLordFactory = NonLordFactory(lord, lord.player as Lord)
+        }    else
+        {        nonLordFactory = NonLordFactory(null, lord.player as Lord)
+        }
 
         for(i in 0 until nonLords)
         {
@@ -34,6 +41,8 @@ object GeneralManager {
         {
             general.playTurn()
         }
+
+        generals[0].beingAttacked()
 
 
     }

@@ -4,7 +4,7 @@ abstract class GeneralFactory {
 }
 
 class LordFactory: GeneralFactory() {
-    private val lords = mutableListOf("Liu Bei" , "Cao Cao", "Sun Quan" )
+    private val lords = mutableListOf("Cao Cao" )
 //        private val lords = mutableListOf("Cao Cao")
 
     override fun createRandomGeneral(player: Player): General {
@@ -28,7 +28,7 @@ class LordFactory: GeneralFactory() {
     }
 }
 
-open class NonLordFactory(private val lord: Lord) : GeneralFactory()
+open class NonLordFactory(private val weiLord: WeiGeneral?,private val lord: Lord) : GeneralFactory()
 {
 
     private val nonLords = mutableListOf("Xu Chu", "Sima Yi", "Xiahou Dun", "Guan Yu", "Zhou Yu", "Diao Chan")
@@ -47,6 +47,14 @@ open class NonLordFactory(private val lord: Lord) : GeneralFactory()
         }
         general.currentHP = general.maxHP
         println(name + " ," +" a "+ general.identity +", has " + general.currentHP + " health point(s).")
+        if (weiLord != null && general is WeiGeneral) {
+            var current = weiLord
+            while (current?.nextInChain != null) {
+                current = current.nextInChain!!
+            }
+            current?.nextInChain = general
+            println("${general.name} added to the Wei chain.")
+        }
 
         return general
 
