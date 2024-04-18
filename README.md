@@ -15,6 +15,8 @@
 - `NonLordFactory` and `LordFactory` are the concrete factory classes that implement the
   AbstractFactory interface. They provide the specific implementations of `createRandomGeneral(player: Player)` and `createPlayer(index: Int)` methods to create the corresponding products.
 
+- Benefits: encapsulation, abstraction, extensibility, centralized control.
+
 ![Factory Pattern](screenshots/FactoryPattern.jpeg)
 
 ```
