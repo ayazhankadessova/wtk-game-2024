@@ -10,13 +10,15 @@ abstract class Strategy(val general: General) {
 open class LoyalistStrategy(general: General) : Strategy(general) {
     override fun attack() {
         if (general.hasAttackCard()) {
-            for (target in GeneralManager.generals) {
+            for (target in GeneralManager.list) {
                 if (target.player is Rebel) {
-                    println(general.name + " spends a card to attack a rebel, " + target.name )
-                    general.numOfCards--
-                    println(general.name + " now has " + general.numOfCards + " cards.")
-                    target.beingAttacked()
-                    break
+
+                    if (general.hasAttackCard() && general.useAttackCard(target)) {
+                        println(general.name + " spends a card to attack a rebel, " + target.name )
+                        println(general.name + " now has " +general.allCards.size + " cards.")
+                        target.beingAttacked(general)
+                        break
+                    }
                 }
             }
         }
@@ -26,13 +28,16 @@ open class LoyalistStrategy(general: General) : Strategy(general) {
 class RebelStrategy(general: General) : Strategy(general) {
     override fun attack() {
         if (general.hasAttackCard()) {
-            for (target in GeneralManager.generals) {
+            for (target in GeneralManager.list) {
                 if (target.player is Lord) {
-                    println(general.name + " spends a card to attack the Lord, " + target.name )
-                    general.numOfCards--
-                    println(general.name + " now has " + general.numOfCards + " cards.")
-                    target.beingAttacked()
-                    break
+                    if (general.hasAttackCard() && general.useAttackCard(target)) {
+                        println(general.name + " spends a card to attack a rebel, " + target.name )
+//                strategy.general.removeOneAttackCard()
+                        println(general.name + " now has " +general.allCards.size + " cards.")
+                        target.beingAttacked(general)
+                        break
+                    }
+
                 }
             }
         }
@@ -42,13 +47,13 @@ class RebelStrategy(general: General) : Strategy(general) {
 class LiuBeiStrategy(general: General) : LoyalistStrategy(general) {
 
     var state : State
-    init {
-        if (general.currentHP < 2) {
-            state = UnhealthyState(this)
-        } else {
-            state = HealthyState(this)
-        }
-    }
+   init {
+       if (general.currentHP < 2) {
+           state = UnhealthyState(this)
+       } else {
+           state = HealthyState(this)
+       }
+   }
 
     override fun playNextCard() = state.playNextCard()
 
@@ -67,37 +72,5 @@ class LiuBeiStrategy(general: General) : LoyalistStrategy(general) {
             return true
         }
         return false
-    }
-}
-
-interface State {
-    fun playNextCard()
-}
-
-class UnhealthyState(private var strategy: LiuBeiStrategy) : State {
-    override fun playNextCard() {
-
-        if (strategy.general.numOfCards >= 2) {
-            strategy.general.numOfCards = strategy.general.numOfCards - 2
-            strategy.general.currentHP +=1
-            println("[Benevolence] Liu Bei gives away two cards and recovers 1 HP, now his HP is " + strategy.general.currentHP + ".")
-        }
-        if (strategy.shouldChangeToHealthy()) {
-            strategy.state = HealthyState(strategy)
-            println(strategy.general.name + " is now Healthy.")
-        }
-    }
-}
-
-class HealthyState(private val strategy: LiuBeiStrategy) : State {
-    override fun playNextCard()  {
-        // Activate Benevolence skill
-
-        println("Healthy State!!")
-        strategy.attack()
-        if (strategy.shouldChangeToUnhealthy()) {
-            strategy.state = UnhealthyState(strategy)
-            println(strategy.general.name + " is now Unhealthy.")
-        }
     }
 }
