@@ -1,5 +1,58 @@
 ## War of Three Kingdoms Documentation
 
+## 1. Creational Design Patterns
+
+## 1.1 Singleton.
+
+1. Singleton Pattern: The `GeneralManager` class is implemented as a singleton object. This ensures that there is only one instance of the `GeneralManager` throughout the game, providing a centralized point of access for managing generals and game-related operations.
+
+## 1.2 Factory Pattern - Abstract Factory Pattern
+
+1. Factory Method Pattern: The creation of lords and non-lords with attached identities is facilitated by the Factory Method pattern. This pattern allows the `GeneralManager` to create different types of generals based on their roles, providing flexibility and extensibility in terms of adding new general types in the future.
+
+```
+open class NonLordFactory(private val generalLord: General, private val lord: Lord) : GeneralFactory()
+{
+
+    private val nonLords = mutableListOf("Zhen Ji", "Xu Chu", "Sima Yi", "Diao Chan",
+        "Lv Bu", "Zhuge Liang", "Guan Yu", "Zheng Fei",...)
+    override fun createRandomGeneral(player: Player):General {
+        val name = nonLords.random()
+        nonLords.remove(name)
+        var general = when (name)
+        {
+            "Zhen Ji" -> ZhenJi(player)
+            "Xu Chu" -> XuChu(player)
+            "Sima Yi" -> SimaYi(player)
+            ...
+
+            else -> throw IllegalArgumentException("Invalid Name")
+        }
+        general.currentHP = general.maxHP
+        println(name + " ," +" a "+ general.identity +", has " + general.currentHP + " health point(s).")
+
+        ...
+
+        return general
+
+    }
+    override fun createPlayer(index: Int): Player {
+
+        var player = when (index)
+        {
+            2 -> Loyalist()
+            3 -> Rebel()
+            ...
+            else -> throw IllegalArgumentException("Invalid Index")
+        }
+
+        return player
+    }
+}
+```
+
+3. Delegation Pattern: The `General` class delegates the implementation of the `Player` interface to the player object. This delegation pattern allows for decoupling the player-specific logic from the `General` class, promoting modularity and enabling different player implementations without modifying the `General` class itself. It also allows us to look up identity of the player.
+
 ## Feature 1: isGameOver()
 
 ### 1. Overview:
@@ -99,12 +152,6 @@ fun isGameOver(): Boolean {
 ### 3. Design Patterns:
 
 While the `isGameOver()` function does not adhere to a specific design pattern, it incorporates several design concepts that enhance the structure and functionality of the War of Three Kingdoms game.
-
-1. Singleton Pattern: The `GeneralManager` class is implemented as a singleton object. This ensures that there is only one instance of the `GeneralManager` throughout the game, providing a centralized point of access for managing generals and game-related operations.
-
-2. Factory Method Pattern: The creation of lords and non-lords with attached identities is facilitated by the Factory Method pattern. This pattern allows the `GeneralManager` to create different types of generals based on their roles, providing flexibility and extensibility in terms of adding new general types in the future.
-
-3. Delegation Pattern: The `General` class delegates the implementation of the `Player` interface to the player object. This delegation pattern allows for decoupling the player-specific logic from the `General` class, promoting modularity and enabling different player implementations without modifying the `General` class itself. It also allows us to look up identity of the player.
 
 ## 4. Class Diagram
 
