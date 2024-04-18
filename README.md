@@ -1,8 +1,4 @@
-## Individual Documentation
-
-### Kadessova Ayazhan
-
-### 21204276
+## War of Three Kingdoms Documentation
 
 ## Feature 1: isGameOver()
 
