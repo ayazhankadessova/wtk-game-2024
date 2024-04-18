@@ -1,10 +1,25 @@
-interface Command {
-    fun execute()
-}
+//interface Command {
+//    fun execute()
+//}
 
-class Acedia(private val receiver: General) :Command {
-    override fun execute() {
+typealias Command = () -> Unit
 
-        receiver.acediaAction()
+// Command function generator
+typealias CommandGenerator = (Player) -> () -> Unit
+
+val Acedia:  CommandGenerator = { player ->
+    {
+        if(player is General)
+        {
+            player.acediaAction()
+
+        }
     }
 }
+
+//class Acedia(private val receiver: General) :Command {
+//    override fun execute() {
+//
+//        receiver.acediaAction()
+//    }
+//}

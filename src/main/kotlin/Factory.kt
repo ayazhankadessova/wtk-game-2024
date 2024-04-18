@@ -4,7 +4,7 @@ abstract class GeneralFactory {
 }
 
 class LordFactory: GeneralFactory() {
-    private val lords = mutableListOf("Cao Cao" )
+    private val lords = mutableListOf("Liu Bei" )
 //        private val lords = mutableListOf("Cao Cao")
 
     override fun createRandomGeneral(player: Player): General {
@@ -19,6 +19,12 @@ class LordFactory: GeneralFactory() {
             else -> throw IllegalArgumentException("Invalid Name")
         }
         general.currentHP = general.maxHP
+
+        if(general is LiuBei)
+        {
+            general.currentHP = 1
+            general.strategy = LiuBeiStrategy(general)
+        }
         println("$name, a ${general.identity}, has ${general.currentHP} health point(s).")
         return general
     }
@@ -47,6 +53,11 @@ open class NonLordFactory(private val weiLord: WeiGeneral?,private val lord: Lor
         }
         general.currentHP = general.maxHP
         println(name + " ," +" a "+ general.identity +", has " + general.currentHP + " health point(s).")
+
+        if (player is Spy) {
+            lord.addObserver(player)
+            println(general.name + " is observing lord.")
+        }
         if (weiLord != null && general is WeiGeneral) {
             var current = weiLord
             while (current?.nextInChain != null) {

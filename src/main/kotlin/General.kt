@@ -1,5 +1,6 @@
 abstract class General(val name: String, val player: Player) : Player by player {
     open var maxHP: Int = 4
+    var strategy: Strategy? = null
 
     var numOfCards:Int = 4
     var skipPlay = false
@@ -40,7 +41,15 @@ abstract class General(val name: String, val player: Player) : Player by player 
     open fun playPhrase()
     {
         println(name + " enters the Play Phase")
-//        playNextCard()
+        playNextCard()
+    }
+
+    fun playNextCard() {
+//        if (numOfCards > 1 && hasAttackCard()) {
+//            strategy?.playNextCard()
+////            numOfCards--
+//        }
+        strategy?.playNextCard()
     }
     open fun discardPhrase()
     {
@@ -75,7 +84,7 @@ abstract class General(val name: String, val player: Player) : Player by player 
     fun executeCommand() {
         for (i in cardsList) {
 //            if (i is Acedia) {
-                i.execute()
+                i.invoke()
 //            }
 
         }
@@ -106,23 +115,38 @@ abstract class General(val name: String, val player: Player) : Player by player 
         return false  // No dodge card found
     }
 
+    fun hasAttackCard(): Boolean {
+        if (numOfCards <= 0) {
+            return false  // No cards to check
+        }
+
+        for (i in 1..numOfCards) {
+            val randNum = Math.random()
+            if (randNum < 0.2) {
+                return true  // Found a dodge card
+            }
+        }
+
+        return false  // No dodge card found
+    }
+
     open fun beingAttacked() {
 
         println(name + " being attacked.")
         if (hasDodgeCard()) {
             println(name + " dodged attack by spending a dodge card.")
 //
-//            if (player is Lord) {
-//                player.notifyObservers(true)
-//            }
+            if (player is Lord) {
+                player.notifyObservers(true)
+            }
             // Determine whether the Lord dodged the attack
 //            return true
         } else {
             currentHP -= 1
             println("No dodge card, damage taken. Current HP: $currentHP")
-//            if (player is Lord) {
-//                player.notifyObservers(false)
-//            }
+            if (player is Lord) {
+                player.notifyObservers(false)
+            }
 
 //            return false
         }
@@ -145,15 +169,15 @@ class CaoCao(player: Player) : WeiGeneral("Cao Cao", player) {
                 println(name + " dodged attack by spending a dodge card. Old numOfCards: " + numOfCards)
                 numOfCards-=1
                 println("new numOfCards: " + numOfCards)
-//                if (player is Lord) {
-//                    player.notifyObservers(true)
-//                }
+                if (player is Lord) {
+                    player.notifyObservers(true)
+                }
             } else {
                 currentHP -= 1
                 println("No dodge card, damage taken. Current HP: $currentHP")
-//                if (player is Lord) {
-//                    player.notifyObservers(false)
-//                }
+                if (player is Lord) {
+                    player.notifyObservers(false)
+                }
             }
         } else {
             println("Attacked Dodged. Current HP: $currentHP")

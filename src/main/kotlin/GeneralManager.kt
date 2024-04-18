@@ -1,5 +1,5 @@
 object GeneralManager {
-    private val generals: MutableList<General> = mutableListOf()
+    val generals: MutableList<General> = mutableListOf()
     private val lordFactory = LordFactory()
 
     fun addGeneral(general: General) {
@@ -40,6 +40,17 @@ object GeneralManager {
         for(general in GeneralManager.generals)
         {
             general.playTurn()
+        }
+
+        println("Turn 2. Spy reveals themselves!")
+
+        generals[3].strategy= RebelStrategy(generals[3])
+        println("Now they have Rebel Strategy!")
+
+        for(general in GeneralManager.generals)
+        {
+            general.playTurn()
+
         }
 
         generals[0].beingAttacked()
