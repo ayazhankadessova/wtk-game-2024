@@ -60,7 +60,831 @@ open class NonLordFactory(private val generalLord: General, private val lord: Lo
 }
 ```
 
-3. Delegation Pattern: The `General` class delegates the implementation of the `Player` interface to the player object. This delegation pattern allows for decoupling the player-specific logic from the `General` class, promoting modularity and enabling different player implementations without modifying the `General` class itself. It also allows us to look up identity of the player.
+### 2. Structural Patterns
+
+## 2.1 Decorator Pattern
+
+1. The decorator pattern allows us to dynamically add additional behaviors or features to an object at runtime. In the project, we use it to enhance our player identities with special abilities, skills, or attributes. For example, we can decorate a Lord identity with the ability to CaoCao's special skill.
+
+- The key idea behind the Decorator Pattern is that decorators conform to the same interface as the component they are wrapping. General also conforms to `Player`.
+
+```
+abstract class General(val name: String, val player: Player):Player {
+```
+
+- This ensures that clients can treat the wrapped object and decorators uniformly, without needing to be aware of the specific decorators being applied.
+
+![Decorator Pattern](screenshots/DecoratorPattern.jpeg)
+
+### 2.2 Delegation Pattern
+
+The `General` class delegates the implementation of the `Player` interface to the player object. This delegation pattern allows for decoupling the player-specific logic from the `General` class, promoting modularity and enabling different player implementations without modifying the `General` class itself. It also allows us to look up identity of the player.
+
+```
+abstract class General(val name: String, val player: Player):Player by player {
+```
+
+## 3. Behavioral Patterns
+
+## 3.1 Command Patterns
+
+## Cards using Command Pattern
+
+I have implemented `Dismantle Card`, `Duel Card`, `Attack Card`, `Eight Trigrams card` using `Command Design Pattern`. The reason is -- in the Command Pattern, **commands are encapsulated as objects**, allowing them to be **parameterized and executed at different points in time**, which is perfect as first cards have no target or no specific source, but can later be parameterized and executed during play phase or when someone is attacking them, so as to dismantle.
+
+For all of these cards, they are under `Card interface/abstract class`, have suit, name, num and have `execute` property, which is Command Generator that is overwritten by every card. Also, may have changeSoure/Attacker function.
+
+### 1. Class Diagram
+
+- General invokes specific card card, which executes a specific command, based on the `execute` property, which is CommandGenerator that is overwritten by every card
+
+![CommandPattern](screenshots/CommandPattern.png)
+
+### 2. Code
+
+- Card Interface
+
+```
+// Command function generator
+typealias CommandGenerator = (Player) -> () -> Unit
+
+
+abstract class Card(val name: String, val num: String,public val suit: String) {
+   // Capital letter for every suits
+   val suitList: List<String> = listOf("Diamond", "Club", "Heart", "Spade")
+   open val execute: CommandGenerator = { { } }
+
+
+}
+```
+
+- If during the draw phase, player draws card that requies source/attacker, we set set it.
+
+```
+open fun drawPhrase()
+{
+    val drawnCards = CardManager.draw(this, 2)
+
+    for (card in drawnCards) {
+        if (card is DuelCard) {
+            card.changeSource(this)
+        }
+        if (card is AttackCard) {
+            card.changeAttacker(this)
+        }
+    }
+    println(name + " draws" + drawnCards.size+ " cards and now has " + allCards.size + " card(s).")
+}
+```
+
+## Now, each of the Cards in Detail...
+
+## Feature: Duel Card + Alienation of Diao Chan
+
+### 1. Overview
+
+The Duel card is a powerful tool used in the War of Three Kingdoms game to inflict 1 unit of health damage to the loser of a duel. Additionally, it often results in the elimination of all the Attack (杀) cards held by one or both players involved in the duel. We use it to enable `Diao Chan`'s `[Alienation]' skill, where she chooses 2 male players to duel each other.
+
+### 2. Feature Description
+
+The Duel card enables players to engage in head-to-head combat, challenging a target player of their choice. The card is then discarded into the discard pile. The selection of the target player is not restricted by range, providing flexibility in choosing opponents.
+
+To initiate the duel, both players involved must play an Attack card. The player who fails to play an Attack card first incurs 1 unit of health damage. This mechanism encourages strategic decision-making and quick thinking during the duel.
+
+If the target player does not possess an Attack card or chooses not to use any, they immediately suffer 1 unit of health damage. This feature gives an advantage to the user of the Duel card, as it increases the likelihood of inflicting damage on the opponent.
+
+Furthermore, a notable side-effect of the Duel card is its tendency to eliminate Attack cards from the hands of one or both players involved in the duel. This outcome often arises due to the requirement of playing Attack cards during the duel, resulting in the depletion of Attack card resources.
+
+By employing the Duel card strategically, Diao Chan can not only inflict health damage on their opponents but also potentially disrupt their opponents' Attack card capabilities, gaining an advantageous position in the game.
+
+### 3. Technical Description
+
+Technical Description:
+
+- The `DuelCard` class represents a card used for initiating a duel between players.
+- It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
+- The `execute` property takes a target player and returns a command function that, when executed, initiates a duel between the source and the target player.
+- When the command function is executed, it checks if the target is a `General` and calls the `challenge()` method on the source player, passing the target as a parameter.
+
+```
+class DuelCard(name: String, num: String, suit: String, private var source: General?) : Card(name, num, suit) {
+    override val execute: CommandGenerator = { target ->
+        {
+            if (target is General) {
+
+                source?.challenge(target)
+            }
+        }
+    }
+
+    open fun changeSource(general: General) {
+        source=general
+    }
+}
+```
+
+### 4. How Duel Card is used
+
+- Diao Chan initializes duel between two male players
+
+```
+class DiaoChan(player: Player): NeutralGeneral("Diao Chan",player) {
+    override var maxHP = 3
+    override var gender: String? = "female"
+
+    override fun playPhase() {
+        super.playPhase()
+
+        val duelCard: DuelCard? = allCards.find { it is DuelCard } as? DuelCard
+
+        if (duelCard != null) {
+
+            println("[Alienation] Select two male players to Duel Each Other")
+
+            // Filter the list for male players
+            val malePlayers = GeneralManager.list.filter { it.gender == "male" }
+
+            // Ensure there are at least 2 male players
+            if (malePlayers.size < 2) {
+                println("Not enough male players for a duel")
+                return
+            }
+
+            // Randomly select 2 male players
+            val playersToDuel = malePlayers.shuffled().take(2)
+            println("Duel: " + playersToDuel[0].name + " VS. " + playersToDuel[1].name)
+
+
+            // Execute the duel action for each selected player
+            duelCard.changeSource(playersToDuel[0])
+
+            val duelAction = duelCard.execute(playersToDuel[1])
+            duelAction()
+            removeCard(duelCard)
+        }
+    }
+
+    ...
+
+}
+```
+
+- In `General.kt` challenge is called to challenge the target and loop is initiated, where two players duel each other using `challenge(target)` & `beingChallenged(attacker)`:
+
+```
+open fun challenge(target: General): Boolean {
+
+    // may play attack card or not
+    while (target.beingChallenged(this)) {
+        if (this.hasAttackCard() && this.useAttackCard(target)) {
+            println("[AttackCard] used")
+            val attackCard:AttackCard = allCards.find { it is AttackCard } as AttackCard
+            if(attackCard!=null)
+            {
+                removeOneAttackCard(attackCard)
+            }
+        } else {
+            println(name + " loses the challenge and loses 1 HP.")
+            currentHP--
+            isKilled(target)
+            return false
+        }
+    }
+    return true
+}
+```
+
+```
+open fun beingChallenged(attacker: General): Boolean {
+    if (this.hasAttackCard() && this.useAttackCard(attacker)) {
+
+        println(name + " is attacking.")
+
+        return true
+    } else {
+        println(name + " loses the challenge and loses 1 HP.")
+        currentHP--
+
+        isKilled(attacker)
+        return false
+    }
+}
+```
+
+### 5. Simulation Result
+
+![Duel Card](screenshots/DuelCard-1.png)
+
+Here, Diao Chan activates the Alienation skill and selects two male players to duel each other. Them Diao Chan removes the card and discards cards to suit currentHP.
+
+### 6. Class Diagram
+
+![Duel Card](screenshots/DuelCard-2.png)
+
+### 7. Sequence Diagram
+
+![Duel Card](screenshots/DuelCard-3.png)
+
+### 8. Testing Considerations
+
+Since in our game, Duel Card is used only for Diao Chan, it is not very frequent. When testing, make ure Diao Chan is in the game.
+
+## Feature: Attack Card
+
+### 1. Overview
+
+One of the base cards in the game, which can reduce the currentHP of the target and even kill it, making the game end. Attack Card is later used as a parent of other Attack Cards.
+
+### 2. Technical Description:
+
+- The `AttackCard` class represents a card used for attacking in the game.
+- It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
+- The `execute` property takes a target player and returns a command function that, when executed, performs the attack action.
+- When the command function is executed, it checks if the target is a `General` and if the target is within attacker’s attack range and calls the `beingAttacked()` method on the target, passing the attacker (`attacker` property) as a parameter, which was set when the player has drawn card.
+
+Attack Cards can also be used during other places, such as Duel, all of which are supported using `useAttackCard()`, which checks if the player has an attack card and invokes it when needed.
+
+```
+open class AttackCard(name: String, num: String, suit: String, var attacker: General?) : Card(name, num, suit) {
+    open var attackRange = 1
+    override val execute: CommandGenerator = { target ->
+        {
+            if(attacker == null)
+            {
+                println("Attacker is null")
+            }
+            else if(target is General && attacker?.distance?.get(target.name) == null)
+            {
+                println("Target is null")
+            }
+            else if (target is General && attacker?.distance?.get(target.name)!! <= attackRange) {
+                println("Attack is within the range")
+                attacker?.let { target.beingAttacked(attacker!!) }
+                attacker?.removeOneAttackCard(this)
+
+            } else {
+                println("Attack is not in range")
+            }
+        }
+    }
+    fun changeAttacker(general: General?)
+    {
+        attacker = general
+    }
+}
+```
+
+### 3. Code
+
+When Attack Card is invoked, it executes `beingAttacked(attacked)` on the target player's instance.
+
+```
+    open fun beingAttacked(attacker: General) {
+
+        println(name + " being attacked.")
+
+        if (dodgeAuto) {
+            println("[Eight Trigrams] autododge worked.")
+            dodgeAuto=false
+
+        } else if (hasDodgeCard()) {
+            ...
+        } else if (hasDismantleCard()) {
+            ...
+        } else {
+            currentHP -= 1
+
+            if (!isKilled(attacker)) {
+                println("No dodge card, no dismantle card, damage taken. Current HP: $currentHP")
+                if (player is Lord) {
+                    player.notifyObservers(false)
+                }
+            } else {
+                println(name + "'s Current HP less that or equal to zero")
+            }
+
+        }
+    }
+```
+
+- We also use `useAttackCard()` during the Duel
+
+```
+fun useAttackCard(attacker: General): Boolean {
+    val attackCard = allCards.find { it is AttackCard } as? AttackCard
+
+    // If an AttackCard is found, execute it
+    if (attackCard != null && attackCard is AttackCard) {
+        println("[Attack Card] " + name + "uses Attack Card against " + attacker.name)
+
+        attackCard.execute(attacker) // Assuming list[7] is the target
+
+        return true
+    }
+
+    return false
+}
+```
+
+### 4. Simulation Result
+
+![Attack Card](screenshots/AttackCard-1.png)
+
+Here, Sun Quan uses Attack Card against Hua Xiong. `beingAttacked(attacker)` gets activated for Hua Xiong. Hua Xiong will use his skill later.
+
+### 5. Class Diagram
+
+![Attack Card2](screenshots/AttackCard-2.png)
+
+### 6. Sequence Diagram
+
+![Attack Card2](screenshots/AttackCard-3.png)
+
+## Feature: Eight Trigrams
+
+### 1. Overview
+
+The Eight Trigrams card is a powerful defensive card that automatically triggers the dodge (闪) ability whenever it is required. It relies on passing a judgement card to determine its activation. If the judgement card is a red suit (hearts or diamonds), the Eight Trigrams card will automatically dodge the attack, providing a significant advantage in combat.
+
+### 2. Feature Description
+
+1. Automatic Dodge: The Eight Trigrams card offers an automatic dodge ability whenever a dodge is required during gameplay. It eliminates the need for the player to manually play a dodge card and relies on the judgement card to activate the dodge.
+
+2. Red Suit Judgement: To activate the Eight Trigrams card's dodge ability, a judgement card must be played. If the judgement card is of a red suit (hearts or diamonds), the Eight Trigrams card will automatically dodge the attack.
+
+3. Defensive Advantage: By equipping the Eight Trigrams card during a player's turn, it provides a reliable defense mechanism. The player can rely on the card to automatically dodge incoming attacks, potentially turning the tide of battle in their favor.
+
+### 3. Technical Description
+
+- The `EightTrigrams` class represents a card with the ability to dodge attacks.
+- It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
+- The `execute` property takes a player and returns a command function that, when executed, allows the player to dodge attacks.
+- When the command function is executed during the judgement phase, it checks if the player is a `General` and calls the `dodge()` method on the player, passing the suit and the attacker (`attacker` property) as parameters.
+- If the card is red suit, it will set `autoDodge` to true, so that when the player is attacked next time, dodge gets activated.
+
+### 4. Code
+
+```
+class EightTrigrams(name: String, num: String, suit: String) : Card(name, num, suit) {
+    override val execute: CommandGenerator = { player ->
+        {
+            if (player is General) {
+                player.dodge(suit)
+            }
+        }
+    }
+}
+```
+
+- During judgement phase, check if player has `EightTrigrams` and execute if they do.
+
+```
+fun executeCommand() {
+    for (i in timeSpellCards) {
+        i.invoke()
+    }
+
+
+    for (i in 0 until allCards.size) {
+        val card = allCards[i]
+        if (card is AttackCard) {
+            ...
+        }
+        else if (card is EightTrigrams) {
+            println(" [Eight Trigrams] : $name")
+
+            val eightTrigramsAction = card.execute(this)
+            eightTrigramsAction()
+
+            removeCard(card)
+            break // Break the loop as the list has been modified
+        }
+    }
+
+    timeSpellCards.clear()
+}
+```
+
+- Execute will activate dodge(suit) via `General.kt`
+
+```
+fun dodge(suit: String) {
+
+        println(name + " is checking AutoDodge.")
+
+        // if red suit -> dodged automatically
+        if ((suit == "Hearts") or (suit == "Diamonds")) {
+            println(name + " activated autoDodge by RED card.")
+            dodgeAuto = true
+
+        } else {
+            println(" Could not activate autoDodge")
+
+        }
+    }
+```
+
+### 5. Simulation results
+
+- Activated `autoDodge`.
+  ![EightTrigrams](screenshots/EightTrigrams.png)
+- Could not activate `autoDodge`
+  ![EightTrigrams](screenshots/EightTrigrams-2.png)
+
+### 6. Class Diagram
+
+![EightTrigrams](screenshots/EightTrigrams-3.png)
+
+### 7. Sequence Diagram
+
+![EightTrigrams](screenshots/EightTrigrams-4.png)
+
+## Feature: Dismantle Card
+
+### 1. Overview
+
+The Dismantle card is a versatile and powerful card that allows players to dismantle and remove any card from any player during gameplay. It can be used to target equipped weapons, armor, horses, cards in hand, and even specialized cards like Time-Delay Tool Cards and Lightning. It offers players a strategic advantage by allowing them to disrupt their opponents' strategies and remove key cards from play.
+
+### 2. Technical Description
+
+- The `DismantleCard` class represents a card used for dismantling cards from the target player's hand.
+- It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
+- The `execute` property takes a target player and returns a command function that, when executed, performs the dismantle action on the target player.
+- When the command function is executed, it checks if the target is a `General` and calls the `dismantleCard()` method on the target.
+
+### 3. Code
+
+```
+class DismantleCard(name: String, num: String, suit: String) : Card(name, num, suit) {
+    override val execute: CommandGenerator = { target ->
+        {
+            if (target is General) {
+                target.dismantleCard()
+            }
+        }
+    }
+}
+```
+
+- In our case, when a player is attacked, if he/she has DismantleCard, we execute it and do not suffer any damage.
+
+```
+    open fun beingAttacked(attacker: General) {
+
+        println(name + " being attacked.")
+
+        if (dodgeAuto) {
+            ..
+
+        } else if (hasDodgeCard()) {
+            ...
+        } else if (hasDismantleCard()) {
+
+            // Find DismantleCard from allCards
+            val dismantleCard = allCards.find { it is DismantleCard }
+
+            // If a DismantleCard is found, execute it and remove it from allCards
+            if (dismantleCard is DismantleCard) {
+                val dismantleAction = dismantleCard.execute(attacker)
+                dismantleAction()
+
+                println(" [DISMANTLE] : $name dismantled ${attacker.name}")
+
+                removeCard(dismantleCard)
+            }
+
+        } else {
+            currentHP -= 1
+
+            ...
+        }
+    }
+```
+
+- By executing Dismantle Card, we execute `dismantleCard()` on the attacker, causing them to use one card.
+
+```
+fun dismantleCard() {
+    if (allCards.isNotEmpty()) {
+        val randomIndex = Random.nextInt(allCards.size)
+        println(name + " lost one card because of Dismantle.")
+        allCards.removeAt(randomIndex)
+    }
+}
+```
+
+### 4. Simulation results
+
+Here, Xu Chu was being attacked by Lv Bu, but Lv Bu used dismantle card and made Lv Bu lose one random card. Other that that, Lv Bu also removed attack card. Xu Chu removed Dismantle card.
+
+![Dismantle Card](screenshots/DismantleCard.png)
+
+### 5. Class Diagram
+
+![Dismantle Card](screenshots/DismantleCard-3.png)
+
+### 6. Sequence Diagram
+
+![Dismantle Card](screenshots/DismantleCard-2.png)
+
+## Feature: Hua Xiong Triumphant
+
+### 1. Overview
+
+When a character deals damage to Hua Xiong with an [Attack] card that belongs to the Red suit, he/she recover 1-point health or draw 1 card.
+
+### 2. Code
+
+- Override `beingAttacked(attacker)` for Hua Xiong. If damage is done, find Attack Card that was used to inflict damage from the top of the discarded pile using `CardManager`, check suit.
+- According to the suit, attacker either draws one card or recovers 1 HP.
+
+```
+class HuaXiong(player: Player): NeutralGeneral("Hua Xiong",player) {
+    override var maxHP = 3
+    override var gender: String? = "male"
+
+    override fun beingAttacked(attacker: General) {
+        println(name + " being attacked.")
+        if (hasDodgeCard()) {
+            ...
+        } else {
+
+            currentHP -= 1
+
+            println("No dodge card, damage taken. Current HP: $currentHP")
+            if (player is Lord) {
+                player.notifyObservers(false)
+            }
+
+            println("[Triumphant] Hua Xiong uses Triumphant.")
+
+            // Finding attack card from the top of discard pile
+            var attackCard: AttackCard? = null
+            attackCard = CardManager.discarded.find { it is AttackCard } as AttackCard?
+
+            if (attackCard != null ) {
+                // Generate a random number between 0 (inclusive) and 2 (exclusive)
+                println("Attack Card has red suit")
+                val randomNumber = (0 until 2).random()
+
+                if (randomNumber == 0) {
+                    // 50% chance to recover 1 point of health
+                    println("Attacker " + attacker.name + " recover 1 HP.")
+                    attacker.currentHP += 1
+                } else {
+                    // 50% chance to draw 1 card
+                    println("Attacker " + attacker.name + " draws one card.")
+                    CardManager.draw(attacker, 1)
+                }
+            }
+            if (isKilled(attacker)) {
+                println(name + "'s Current HP less that or equal to zero")
+
+            }
+        }
+    }
+}
+```
+
+### 3. Simulation Result
+
+![Dismantle Card](screenshots/Triumphant-1.png)
+
+## 3.2 Chain Of Responsibility.
+
+Cao Cao possesses a lord skill called "Entourage" that allows him to request the Wei generals' help to dodge an attack. To implement this, use Chain Of Responsibility.
+
+```
+abstract class WeiGeneral(name: String, player: Player) : General(name, player) {
+    var nextInChain: WeiGeneral? = null
+    fun handleRequest(): Boolean {
+        if (player.shouldHelpLord()) {
+            println("$name helps Cao Cao dodge an attack.")
+            return true
+        } else {
+            println("$name is not a Loyalist.")
+            return nextInChain?.handleRequest() ?: false
+        }
+    }
+}
+```
+
+```
+class CaoCao(player: Player): WeiGeneral("Cao Cao", player) {
+    override var maxHP = 5
+    override var gender: String? = "male"
+    override var kingdom: String = "Shu"
+    override fun beingAttacked(attacker: General) {
+        println(name + " being attacked.")
+        println("[Entourage] Cao Cao activates Lord Skill Entourage.")
+        if (!handleRequest()) {
+            if (hasDodgeCard()) {
+                removeCard(allCards.random())
+                println("new numOfCards: " + allCards.size)
+                if (player is Lord) {
+                    player.notifyObservers(true)
+                }
+          ....
+}
+```
+
+## 3.3 Observer Pattern
+
+- To address the scenario where the spy and other players may want to help the Lord when they perceive the Lord is under heavy attacks, and to provide them with information on how often the Lord gets attacked and whether the Lord has a dodge card, utilize the Observer pattern. This will enable the spies or other players to observe the Lord and receive updates on relevant information.
+
+![Observer Patterm](screenshots/ObserverPatterm.jpeg)
+
+```
+class Lord: Player, Subject
+{
+    ...
+    private val observers = mutableListOf<Observer>()
+
+    override fun addObserver(observer: Observer) {
+        observers.add(observer)
+    }
+
+    override fun removeObserver(observer: Observer) {
+        observers.remove(observer)
+    }
+
+    override fun notifyObservers(dodged: Boolean) {
+        for (observer in observers) {
+            observer.update(dodged)
+        }
+    }
+
+}
+```
+
+```
+class Spy: Player, Observer
+{
+   ...
+
+    override fun update(dodged: Boolean) {
+        // Update risk level based on whether the Lord dodged the attack
+        riskLevel = if (dodged) riskLevel + 5 else riskLevel +10
+        println("Current risk level: $riskLevel")
+    }
+
+    ...
+}
+```
+
+```
+open fun beingAttacked(attacker: General) {
+
+        println(name + " being attacked.")
+
+        if (dodgeAuto) {
+            ...
+
+        } else if (hasDodgeCard()) {
+            ...
+
+            if (player is Lord) {
+                player.notifyObservers(true)
+            }
+```
+
+## 3.4 Strategy Design Pattern
+
+- Developed LoyalistStrategy and RebelStrategy classes, each implementing the attack() method based on identities.
+
+- Concrete classes LoyalistStrategy and RebelStrategy. Loyalists (Lord, loyalists, and undercover spies) would attack rebels, while Rebels (Rebels and revealed spy) will attack the Lord.
+
+```
+abstract class Strategy(val general: General) {
+
+    open fun playNextCard() {
+        attack()
+    }
+
+    abstract fun attack()
+}
+```
+
+```
+open class LoyalistStrategy(general: General) : Strategy(general) {
+    override fun attack() {
+        if (general.hasAttackCard()) {
+            for (target in GeneralManager.list) {
+                if (target.player is Rebel) {
+
+                    if (general.hasAttackCard() && general.useAttackCard(target)) {
+                        println(general.name + " spends a card to attack a rebel, " + target.name )
+                        println(general.name + " now has " +general.allCards.size + " cards.")
+                        target.beingAttacked(general)
+                        break
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+```
+class RebelStrategy(general: General) : Strategy(general) {
+    override fun attack() {
+        if (general.hasAttackCard()) {
+            for (target in GeneralManager.list) {
+                if (target.player is Lord) {
+                    if (general.hasAttackCard() && general.useAttackCard(target)) {
+                        println(general.name + " spends a card to attack a rebel, " + target.name )
+//                strategy.general.removeOneAttackCard()
+                        println(general.name + " now has " +general.allCards.size + " cards.")
+                        target.beingAttacked(general)
+                        break
+                    }
+
+                }
+            }
+        }
+    }
+}
+```
+
+## 3.5 State Pattern
+
+The State Design Pattern allows an object to alter its behavior when its internal state changes. In the context of our WTK card game, we can use the State pattern to handle the computer players' card-playing decisions based on their current health levels.
+
+- Implemented concrete classes that implement the State interface. Each concrete class represents a different state based on Liu Bei's health level. For example, we can have classes like HealthyState and UnhealthyState. Each state class should take a LiuBeiStrategy object as input in the primary constructor.
+
+- In the UnhealthyState, Liu Bei should activate his special skill, Benevolence, which allows him to give away two cards in order to recover a health point. In the HealthyState, Liu Bei should attack a rebel, just like what a regular loyalist does.
+
+- Check whether Liu Bei becomes healthy after the Benevolence skill has been activated. Similarly, check whether Liu Bei is now unhealthy before he attacks the rebel.
+
+```
+interface State {
+    fun playNextCard()
+}
+```
+
+```
+class UnhealthyState(private var strategy: LiuBeiStrategy) : State {
+    override fun playNextCard() {
+
+        if (strategy.general.allCards.size >= 2) {
+            strategy.general.removeCard(strategy.general.allCards.random())
+            strategy.general.removeCard(strategy.general.allCards.random())
+
+            strategy.general.currentHP +=1
+            println("[Benevolence] Liu Bei gives away two cards and recovers 1 HP, now his HP is " + strategy.general.currentHP + ".")
+        }
+        if (strategy.shouldChangeToHealthy()) {
+            strategy.state = HealthyState(strategy)
+            ...
+        }
+    }
+}
+```
+
+```
+class HealthyState(private val strategy: LiuBeiStrategy) : State {
+    override fun playNextCard()  {
+        // Activate Benevolence skill
+        for (target in GeneralManager.list) {
+            if (target.player is Rebel) {
+         ...
+        }
+        if (strategy.shouldChangeToUnhealthy()) {
+            strategy.state = UnhealthyState(strategy)
+            println(strategy.general.name + " is now Unhealthy.")
+        }
+    }
+}
+```
+
+- use it for Liu Bei's Strategy
+
+```
+class LiuBeiStrategy(general: General) : LoyalistStrategy(general) {
+
+    var state : State
+   init {
+       if (general.currentHP < 2) {
+           state = UnhealthyState(this)
+       } else {
+           state = HealthyState(this)
+       }
+   }
+
+    override fun playNextCard() = state.playNextCard()
+
+    fun shouldChangeToUnhealthy(): Boolean {
+
+        ...
+
+    }
+
+    fun shouldChangeToHealthy(): Boolean {
+
+        ...
+    }
+}
+```
 
 ## Feature 1: isGameOver()
 
@@ -287,568 +1111,6 @@ The `CardManager` object is implemented as a Singleton, which ensures that only 
 ### 5. Sequence Diagram
 
 ![Card Manager](screenshots/CardManager-2.png)
-
-## Feature 3, 4, 5, 6 Overall: Cards using Command Pattern
-
-I have implemented `Dismantle Card`, `Duel Card`, `Attack Card`, `Eight Trigrams card` using `Command Design Pattern`. The reason is -- in the Command Pattern, **commands are encapsulated as objects**, allowing them to be **parameterized and executed at different points in time**, which is perfect as first cards have no target or no specific source, but can later be parameterized and executed during play phase or when someone is attacking them, so as to dismantle.
-
-For all of these cards, they are under `Card interface/abstract class`, have suit, name, num and have `execute` property, which is Command Generator that is overwritten by every card. Also, may have changeSoure/Attacker function.
-
-### 1. Class Diagram
-
-- General invokes specific card card, which executes a specific command, based on the `execute` property, which is CommandGenerator that is overwritten by every card
-
-![CommandPattern](screenshots/CommandPattern.png)
-
-### 2. Code
-
-- Card Interface
-
-```
-// Command function generator
-typealias CommandGenerator = (Player) -> () -> Unit
-
-
-abstract class Card(val name: String, val num: String,public val suit: String) {
-   // Capital letter for every suits
-   val suitList: List<String> = listOf("Diamond", "Club", "Heart", "Spade")
-   open val execute: CommandGenerator = { { } }
-
-
-}
-```
-
-- If during the draw phase, player draws card that requies source/attacker, we set set it.
-
-```
-open fun drawPhrase()
-{
-    val drawnCards = CardManager.draw(this, 2)
-
-    for (card in drawnCards) {
-        if (card is DuelCard) {
-            card.changeSource(this)
-        }
-        if (card is AttackCard) {
-            card.changeAttacker(this)
-        }
-    }
-    println(name + " draws" + drawnCards.size+ " cards and now has " + allCards.size + " card(s).")
-}
-```
-
-## Now, each of the Cards in Detail...
-
-## Feature 3: Duel Card + Alienation of Diao Chan
-
-### 1. Overview
-
-The Duel card is a powerful tool used in the War of Three Kingdoms game to inflict 1 unit of health damage to the loser of a duel. Additionally, it often results in the elimination of all the Attack (杀) cards held by one or both players involved in the duel. We use it to enable `Diao Chan`'s `[Alienation]' skill, where she chooses 2 male players to duel each other.
-
-### 2. Feature Description
-
-The Duel card enables players to engage in head-to-head combat, challenging a target player of their choice. The card is then discarded into the discard pile. The selection of the target player is not restricted by range, providing flexibility in choosing opponents.
-
-To initiate the duel, both players involved must play an Attack card. The player who fails to play an Attack card first incurs 1 unit of health damage. This mechanism encourages strategic decision-making and quick thinking during the duel.
-
-If the target player does not possess an Attack card or chooses not to use any, they immediately suffer 1 unit of health damage. This feature gives an advantage to the user of the Duel card, as it increases the likelihood of inflicting damage on the opponent.
-
-Furthermore, a notable side-effect of the Duel card is its tendency to eliminate Attack cards from the hands of one or both players involved in the duel. This outcome often arises due to the requirement of playing Attack cards during the duel, resulting in the depletion of Attack card resources.
-
-By employing the Duel card strategically, Diao Chan can not only inflict health damage on their opponents but also potentially disrupt their opponents' Attack card capabilities, gaining an advantageous position in the game.
-
-### 3. Technical Description
-
-Technical Description:
-
-- The `DuelCard` class represents a card used for initiating a duel between players.
-- It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
-- The `execute` property takes a target player and returns a command function that, when executed, initiates a duel between the source and the target player.
-- When the command function is executed, it checks if the target is a `General` and calls the `challenge()` method on the source player, passing the target as a parameter.
-
-```
-class DuelCard(name: String, num: String, suit: String, private var source: General?) : Card(name, num, suit) {
-    override val execute: CommandGenerator = { target ->
-        {
-            if (target is General) {
-
-                source?.challenge(target)
-            }
-        }
-    }
-
-    open fun changeSource(general: General) {
-        source=general
-    }
-}
-```
-
-### 4. How Duel Card is used
-
-- Diao Chan initializes duel between two male players
-
-```
-class DiaoChan(player: Player): NeutralGeneral("Diao Chan",player) {
-    override var maxHP = 3
-    override var gender: String? = "female"
-
-    override fun playPhase() {
-        super.playPhase()
-
-        val duelCard: DuelCard? = allCards.find { it is DuelCard } as? DuelCard
-
-        if (duelCard != null) {
-
-            println("[Alienation] Select two male players to Duel Each Other")
-
-            // Filter the list for male players
-            val malePlayers = GeneralManager.list.filter { it.gender == "male" }
-
-            // Ensure there are at least 2 male players
-            if (malePlayers.size < 2) {
-                println("Not enough male players for a duel")
-                return
-            }
-
-            // Randomly select 2 male players
-            val playersToDuel = malePlayers.shuffled().take(2)
-            println("Duel: " + playersToDuel[0].name + " VS. " + playersToDuel[1].name)
-
-
-            // Execute the duel action for each selected player
-            duelCard.changeSource(playersToDuel[0])
-
-            val duelAction = duelCard.execute(playersToDuel[1])
-            duelAction()
-            removeCard(duelCard)
-        }
-    }
-
-    ...
-
-}
-```
-
-- In `General.kt` challenge is called to challenge the target and loop is initiated, where two players duel each other using `challenge(target)` & `beingChallenged(attacker)`:
-
-```
-open fun challenge(target: General): Boolean {
-
-    // may play attack card or not
-    while (target.beingChallenged(this)) {
-        if (this.hasAttackCard() && this.useAttackCard(target)) {
-            println("[AttackCard] used")
-            val attackCard:AttackCard = allCards.find { it is AttackCard } as AttackCard
-            if(attackCard!=null)
-            {
-                removeOneAttackCard(attackCard)
-            }
-        } else {
-            println(name + " loses the challenge and loses 1 HP.")
-            currentHP--
-            isKilled(target)
-            return false
-        }
-    }
-    return true
-}
-```
-
-```
-open fun beingChallenged(attacker: General): Boolean {
-    if (this.hasAttackCard() && this.useAttackCard(attacker)) {
-
-        println(name + " is attacking.")
-
-        return true
-    } else {
-        println(name + " loses the challenge and loses 1 HP.")
-        currentHP--
-
-        isKilled(attacker)
-        return false
-    }
-}
-```
-
-### 5. Simulation Result
-
-![Duel Card](screenshots/DuelCard-1.png)
-
-Here, Diao Chan activates the Alienation skill and selects two male players to duel each other. Them Diao Chan removes the card and discards cards to suit currentHP.
-
-### 6. Class Diagram
-
-![Duel Card](screenshots/DuelCard-2.png)
-
-### 7. Sequence Diagram
-
-![Duel Card](screenshots/DuelCard-3.png)
-
-### 8. Testing Considerations
-
-Since in our game, Duel Card is used only for Diao Chan, it is not very frequent. When testing, make ure Diao Chan is in the game.
-
-## Feature 4: Attack Card
-
-### 1. Overview
-
-One of the base cards in the game, which can reduce the currentHP of the target and even kill it, making the game end. Attack Card is later used as a parent of other Attack Cards.
-
-### 2. Technical Description:
-
-- The `AttackCard` class represents a card used for attacking in the game.
-- It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
-- The `execute` property takes a target player and returns a command function that, when executed, performs the attack action.
-- When the command function is executed, it checks if the target is a `General` and if the target is within attacker’s attack range and calls the `beingAttacked()` method on the target, passing the attacker (`attacker` property) as a parameter, which was set when the player has drawn card.
-
-Attack Cards can also be used during other places, such as Duel, all of which are supported using `useAttackCard()`, which checks if the player has an attack card and invokes it when needed.
-
-```
-open class AttackCard(name: String, num: String, suit: String, var attacker: General?) : Card(name, num, suit) {
-    open var attackRange = 1
-    override val execute: CommandGenerator = { target ->
-        {
-            if(attacker == null)
-            {
-                println("Attacker is null")
-            }
-            else if(target is General && attacker?.distance?.get(target.name) == null)
-            {
-                println("Target is null")
-            }
-            else if (target is General && attacker?.distance?.get(target.name)!! <= attackRange) {
-                println("Attack is within the range")
-                attacker?.let { target.beingAttacked(attacker!!) }
-                attacker?.removeOneAttackCard(this)
-
-            } else {
-                println("Attack is not in range")
-            }
-        }
-    }
-    fun changeAttacker(general: General?)
-    {
-        attacker = general
-    }
-}
-```
-
-### 3. Code
-
-When Attack Card is invoked, it executes `beingAttacked(attacked)` on the target player's instance.
-
-```
-    open fun beingAttacked(attacker: General) {
-
-        println(name + " being attacked.")
-
-        if (dodgeAuto) {
-            println("[Eight Trigrams] autododge worked.")
-            dodgeAuto=false
-
-        } else if (hasDodgeCard()) {
-            ...
-        } else if (hasDismantleCard()) {
-            ...
-        } else {
-            currentHP -= 1
-
-            if (!isKilled(attacker)) {
-                println("No dodge card, no dismantle card, damage taken. Current HP: $currentHP")
-                if (player is Lord) {
-                    player.notifyObservers(false)
-                }
-            } else {
-                println(name + "'s Current HP less that or equal to zero")
-            }
-
-        }
-    }
-```
-
-- We also use `useAttackCard()` during the Duel
-
-```
-fun useAttackCard(attacker: General): Boolean {
-    val attackCard = allCards.find { it is AttackCard } as? AttackCard
-
-    // If an AttackCard is found, execute it
-    if (attackCard != null && attackCard is AttackCard) {
-        println("[Attack Card] " + name + "uses Attack Card against " + attacker.name)
-
-        attackCard.execute(attacker) // Assuming list[7] is the target
-
-        return true
-    }
-
-    return false
-}
-```
-
-### 4. Simulation Result
-
-![Attack Card](screenshots/AttackCard-1.png)
-
-Here, Sun Quan uses Attack Card against Hua Xiong. `beingAttacked(attacker)` gets activated for Hua Xiong. Hua Xiong will use his skill later.
-
-### 5. Class Diagram
-
-![Attack Card2](screenshots/AttackCard-2.png)
-
-### 6. Sequence Diagram
-
-![Attack Card2](screenshots/AttackCard-3.png)
-
-## Feature 5: Eight Trigrams
-
-### 1. Overview
-
-The Eight Trigrams card is a powerful defensive card that automatically triggers the dodge (闪) ability whenever it is required. It relies on passing a judgement card to determine its activation. If the judgement card is a red suit (hearts or diamonds), the Eight Trigrams card will automatically dodge the attack, providing a significant advantage in combat.
-
-### 2. Feature Description
-
-1. Automatic Dodge: The Eight Trigrams card offers an automatic dodge ability whenever a dodge is required during gameplay. It eliminates the need for the player to manually play a dodge card and relies on the judgement card to activate the dodge.
-
-2. Red Suit Judgement: To activate the Eight Trigrams card's dodge ability, a judgement card must be played. If the judgement card is of a red suit (hearts or diamonds), the Eight Trigrams card will automatically dodge the attack.
-
-3. Defensive Advantage: By equipping the Eight Trigrams card during a player's turn, it provides a reliable defense mechanism. The player can rely on the card to automatically dodge incoming attacks, potentially turning the tide of battle in their favor.
-
-### 3. Technical Description
-
-- The `EightTrigrams` class represents a card with the ability to dodge attacks.
-- It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
-- The `execute` property takes a player and returns a command function that, when executed, allows the player to dodge attacks.
-- When the command function is executed during the judgement phase, it checks if the player is a `General` and calls the `dodge()` method on the player, passing the suit and the attacker (`attacker` property) as parameters.
-- If the card is red suit, it will set `autoDodge` to true, so that when the player is attacked next time, dodge gets activated.
-
-### 4. Code
-
-```
-class EightTrigrams(name: String, num: String, suit: String) : Card(name, num, suit) {
-    override val execute: CommandGenerator = { player ->
-        {
-            if (player is General) {
-                player.dodge(suit)
-            }
-        }
-    }
-}
-```
-
-- During judgement phase, check if player has `EightTrigrams` and execute if they do.
-
-```
-fun executeCommand() {
-    for (i in timeSpellCards) {
-        i.invoke()
-    }
-
-
-    for (i in 0 until allCards.size) {
-        val card = allCards[i]
-        if (card is AttackCard) {
-            ...
-        }
-        else if (card is EightTrigrams) {
-            println(" [Eight Trigrams] : $name")
-
-            val eightTrigramsAction = card.execute(this)
-            eightTrigramsAction()
-
-            removeCard(card)
-            break // Break the loop as the list has been modified
-        }
-    }
-
-    timeSpellCards.clear()
-}
-```
-
-- Execute will activate dodge(suit) via `General.kt`
-
-```
-fun dodge(suit: String) {
-
-        println(name + " is checking AutoDodge.")
-
-        // if red suit -> dodged automatically
-        if ((suit == "Hearts") or (suit == "Diamonds")) {
-            println(name + " activated autoDodge by RED card.")
-            dodgeAuto = true
-
-        } else {
-            println(" Could not activate autoDodge")
-
-        }
-    }
-```
-
-### 5. Simulation results
-
-- Activated `autoDodge`.
-  ![EightTrigrams](screenshots/EightTrigrams.png)
-- Could not activate `autoDodge`
-  ![EightTrigrams](screenshots/EightTrigrams-2.png)
-
-### 6. Class Diagram
-
-![EightTrigrams](screenshots/EightTrigrams-3.png)
-
-### 7. Sequence Diagram
-
-![EightTrigrams](screenshots/EightTrigrams-4.png)
-
-## Feature 6: Dismantle Card
-
-### 1. Overview
-
-The Dismantle card is a versatile and powerful card that allows players to dismantle and remove any card from any player during gameplay. It can be used to target equipped weapons, armor, horses, cards in hand, and even specialized cards like Time-Delay Tool Cards and Lightning. It offers players a strategic advantage by allowing them to disrupt their opponents' strategies and remove key cards from play.
-
-### 2. Technical Description
-
-- The `DismantleCard` class represents a card used for dismantling cards from the target player's hand.
-- It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
-- The `execute` property takes a target player and returns a command function that, when executed, performs the dismantle action on the target player.
-- When the command function is executed, it checks if the target is a `General` and calls the `dismantleCard()` method on the target.
-
-### 3. Code
-
-```
-class DismantleCard(name: String, num: String, suit: String) : Card(name, num, suit) {
-    override val execute: CommandGenerator = { target ->
-        {
-            if (target is General) {
-                target.dismantleCard()
-            }
-        }
-    }
-}
-```
-
-- In our case, when a player is attacked, if he/she has DismantleCard, we execute it and do not suffer any damage.
-
-```
-    open fun beingAttacked(attacker: General) {
-
-        println(name + " being attacked.")
-
-        if (dodgeAuto) {
-            ..
-
-        } else if (hasDodgeCard()) {
-            ...
-        } else if (hasDismantleCard()) {
-
-            // Find DismantleCard from allCards
-            val dismantleCard = allCards.find { it is DismantleCard }
-
-            // If a DismantleCard is found, execute it and remove it from allCards
-            if (dismantleCard is DismantleCard) {
-                val dismantleAction = dismantleCard.execute(attacker)
-                dismantleAction()
-
-                println(" [DISMANTLE] : $name dismantled ${attacker.name}")
-
-                removeCard(dismantleCard)
-            }
-
-        } else {
-            currentHP -= 1
-
-            ...
-        }
-    }
-```
-
-- By executing Dismantle Card, we execute `dismantleCard()` on the attacker, causing them to use one card.
-
-```
-fun dismantleCard() {
-    if (allCards.isNotEmpty()) {
-        val randomIndex = Random.nextInt(allCards.size)
-        println(name + " lost one card because of Dismantle.")
-        allCards.removeAt(randomIndex)
-    }
-}
-```
-
-### 4. Simulation results
-
-Here, Xu Chu was being attacked by Lv Bu, but Lv Bu used dismantle card and made Lv Bu lose one random card. Other that that, Lv Bu also removed attack card. Xu Chu removed Dismantle card.
-
-![Dismantle Card](screenshots/DismantleCard.png)
-
-### 5. Class Diagram
-
-![Dismantle Card](screenshots/DismantleCard-3.png)
-
-### 6. Sequence Diagram
-
-![Dismantle Card](screenshots/DismantleCard-2.png)
-
-## Feature 7. Hua Xiong Triumphant
-
-### 1. Overview
-
-When a character deals damage to Hua Xiong with an [Attack] card that belongs to the Red suit, he/she recover 1-point health or draw 1 card.
-
-### 2. Code
-
-- Override `beingAttacked(attacker)` for Hua Xiong. If damage is done, find Attack Card that was used to inflict damage from the top of the discarded pile using `CardManager`, check suit.
-- According to the suit, attacker either draws one card or recovers 1 HP.
-
-```
-class HuaXiong(player: Player): NeutralGeneral("Hua Xiong",player) {
-    override var maxHP = 3
-    override var gender: String? = "male"
-
-    override fun beingAttacked(attacker: General) {
-        println(name + " being attacked.")
-        if (hasDodgeCard()) {
-            ...
-        } else {
-
-            currentHP -= 1
-
-            println("No dodge card, damage taken. Current HP: $currentHP")
-            if (player is Lord) {
-                player.notifyObservers(false)
-            }
-
-            println("[Triumphant] Hua Xiong uses Triumphant.")
-
-            // Finding attack card from the top of discard pile
-            var attackCard: AttackCard? = null
-            attackCard = CardManager.discarded.find { it is AttackCard } as AttackCard?
-
-            if (attackCard != null ) {
-                // Generate a random number between 0 (inclusive) and 2 (exclusive)
-                println("Attack Card has red suit")
-                val randomNumber = (0 until 2).random()
-
-                if (randomNumber == 0) {
-                    // 50% chance to recover 1 point of health
-                    println("Attacker " + attacker.name + " recover 1 HP.")
-                    attacker.currentHP += 1
-                } else {
-                    // 50% chance to draw 1 card
-                    println("Attacker " + attacker.name + " draws one card.")
-                    CardManager.draw(attacker, 1)
-                }
-            }
-            if (isKilled(attacker)) {
-                println(name + "'s Current HP less that or equal to zero")
-
-            }
-        }
-    }
-}
-```
-
-### 3. Simulation Result
-
-![Dismantle Card](screenshots/Triumphant-1.png)
 
 ## Small Features
 
