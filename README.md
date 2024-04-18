@@ -10,6 +10,13 @@
 
 1. Factory Method Pattern: The creation of lords and non-lords with attached identities is facilitated by the Factory Method pattern. This pattern allows the `GeneralManager` to create different types of generals based on their roles, providing flexibility and extensibility in terms of adding new general types in the future.
 
+- The GeneralFactory (Abstract Factory) interface declares the factory methods `createRandomGeneral(player: Player)` and `createPlayer(index: Int)` for creating the products of these families (player and general).
+
+- `NonLordFactory` and `LordFactory` are the concrete factory classes that implement the
+  AbstractFactory interface. They provide the specific implementations of `createRandomGeneral(player: Player)` and `createPlayer(index: Int)` methods to create the corresponding products.
+
+![Factory Pattern](screenshots/FactoryPattern.jpeg)
+
 ```
 open class NonLordFactory(private val generalLord: General, private val lord: Lord) : GeneralFactory()
 {
