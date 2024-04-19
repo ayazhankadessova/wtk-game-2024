@@ -6,7 +6,7 @@
 
 Design patterns provide reusable solutions to common software design problems, offering structure, flexibility, and maintainability to our code. By incorporating design patterns in this game, I ensured that code follows best practices and is easily extensible.
 
-Throughout this game, I learned the concept of creational, structural, behavioral design patterns to implement various aspects of this card game.
+Throughout this game, I learned the concept of **creational, structural, behavioral** design patterns to implement various aspects of this card game.
 
 ## Table of Contents
 
