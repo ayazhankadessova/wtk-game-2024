@@ -886,6 +886,29 @@ class LiuBeiStrategy(general: General) : LoyalistStrategy(general) {
 }
 ```
 
+## 4. Functional Programming
+
+Acedia command is transformed from the object-oriented programming (OOP) command pattern approach into a functional programming approach.
+
+```
+typealias TimeSpellCard = () -> Unit
+
+// Command function generator
+typealias CommandGenerator = (Player) -> () -> Unit
+
+val Acedia:  CommandGenerator = { player ->
+    {
+        if(player is General)
+        {
+            player.acediaAction()
+        }
+    }
+}
+
+```
+
+and is later invoked using `command.invoke()`.
+
 ## Feature 1: isGameOver()
 
 ### 1. Overview:
