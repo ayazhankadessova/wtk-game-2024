@@ -59,9 +59,9 @@
   - [3. Design Patterns:](#3-design-patterns)
   - [4. Class Diagram](#4-class-diagram)
   - [5. Sequence Diagram](#5-sequence-diagram)
-  - [Feature 2: CardManager](#feature-2-cardmanager)
+- [Feature 2: CardManager](#feature-2-cardmanager)
   - [1. Overview:](#1-overview-1)
-- [2. Feature Description \& Code:](#2-feature-description--code)
+  - [2. Feature Description \& Code:](#2-feature-description--code)
   - [3. Design Pattern: Singleton Object](#3-design-pattern-singleton-object)
   - [4. Class Diagram](#4-class-diagram-1)
   - [5. Sequence Diagram](#5-sequence-diagram-1)
@@ -1086,7 +1086,7 @@ While the `isGameOver()` function does not adhere to a specific design pattern, 
 
 ![Game Over Screenshot](screenshots/IsGameOver-2.png)
 
-### Feature 2: CardManager
+## Feature 2: CardManager
 
 ### 1. Overview:
 
@@ -1100,7 +1100,7 @@ object CardManager {
     ...
 ```
 
-## 2. Feature Description & Code:
+### 2. Feature Description & Code:
 
 1. `createDeck()` function: Creates a deck of cards by adding AttackCards, DuelCards, DismantleCards, and EightTrigrams based on specific rules defined in the code. Range cards are added later. The deck is shuffled after the cards are added.
 
