@@ -1,5 +1,76 @@
 ## War of Three Kingdoms Documentation
 
+- [War of Three Kingdoms Documentation](#war-of-three-kingdoms-documentation)
+- [1. Creational Design Patterns](#1-creational-design-patterns)
+- [1.1 Singleton.](#11-singleton)
+- [1.2 Factory Pattern - Abstract Factory Pattern](#12-factory-pattern---abstract-factory-pattern)
+- [2. Structural Patterns](#2-structural-patterns)
+  - [2.1 Decorator Pattern](#21-decorator-pattern)
+  - [2.2 Delegation Pattern](#22-delegation-pattern)
+- [3. Behavioral Patterns](#3-behavioral-patterns)
+- [3.1 Command Pattern for Cards](#31-command-pattern-for-cards)
+  - [3.1.1. Class Diagram](#311-class-diagram)
+  - [3.1.2. Code](#312-code)
+- [Now, each of the Cards in Detail...](#now-each-of-the-cards-in-detail)
+- [3.2 Duel Card + Alienation of Diao Chan](#32-duel-card--alienation-of-diao-chan)
+  - [3.2.1. Overview](#321-overview)
+  - [3.2.2. Feature Description](#322-feature-description)
+  - [3.2.3. Technical Description](#323-technical-description)
+  - [3.2.4. How Duel Card is used](#324-how-duel-card-is-used)
+  - [3.2.5. Simulation Result](#325-simulation-result)
+  - [3.2.6. Class Diagram](#326-class-diagram)
+  - [3.2.7. Sequence Diagram](#327-sequence-diagram)
+  - [3.2.8. Testing Considerations](#328-testing-considerations)
+- [3.3 Attack Card](#33-attack-card)
+  - [3.3.1. Overview](#331-overview)
+  - [3.3.2. Technical Description:](#332-technical-description)
+  - [3.3.3. Code](#333-code)
+  - [3.3.4. Simulation Result](#334-simulation-result)
+  - [3.3.5. Class Diagram](#335-class-diagram)
+  - [3.3.6. Sequence Diagram](#336-sequence-diagram)
+- [3.4. Eight Trigrams](#34-eight-trigrams)
+  - [3.4.1. Overview](#341-overview)
+  - [3.4.2. Feature Description](#342-feature-description)
+  - [3.4.3. Technical Description](#343-technical-description)
+  - [3.4.4. Code](#344-code)
+  - [3.4.5. Simulation results](#345-simulation-results)
+  - [3.4.6. Class Diagram](#346-class-diagram)
+  - [3.4.7. Sequence Diagram](#347-sequence-diagram)
+- [3.5. Dismantle Card](#35-dismantle-card)
+  - [3.5.1. Overview](#351-overview)
+  - [3.5.2. Technical Description](#352-technical-description)
+  - [3.5.3. Code](#353-code)
+  - [3.5.4. Simulation results](#354-simulation-results)
+  - [3.5.5. Class Diagram](#355-class-diagram)
+  - [3.5.6. Sequence Diagram](#356-sequence-diagram)
+- [3.6. Hua Xiong Triumphant](#36-hua-xiong-triumphant)
+  - [3.6.1. Overview](#361-overview)
+  - [3.6.2. Code](#362-code)
+  - [3.6.3. Simulation Result](#363-simulation-result)
+- [3.2 Chain Of Responsibility.](#32-chain-of-responsibility)
+- [3.3 Observer Pattern](#33-observer-pattern)
+- [3.4 Strategy Design Pattern](#34-strategy-design-pattern)
+- [3.5 State Pattern](#35-state-pattern)
+- [4. Functional Programming](#4-functional-programming)
+- [Feature 1: isGameOver()](#feature-1-isgameover)
+  - [1. Overview:](#1-overview)
+  - [2. Feature Description:](#2-feature-description)
+  - [3. Code Segment](#3-code-segment)
+  - [3. Design Patterns:](#3-design-patterns)
+  - [4. Class Diagram](#4-class-diagram)
+  - [5. Sequence Diagram](#5-sequence-diagram)
+  - [Feature 2: CardManager](#feature-2-cardmanager)
+  - [1. Overview:](#1-overview-1)
+- [2. Feature Description \& Code:](#2-feature-description--code)
+  - [3. Design Pattern: Singleton Object](#3-design-pattern-singleton-object)
+  - [4. Class Diagram](#4-class-diagram-1)
+  - [5. Sequence Diagram](#5-sequence-diagram-1)
+- [Small Features](#small-features)
+  - [1. Player's Death - `General.kt`](#1-players-death---generalkt)
+  - [2. Keep Track of numOfCard properly](#2-keep-track-of-numofcard-properly)
+  - [3. Remove Card from hand and all to discarded](#3-remove-card-from-hand-and-all-to-discarded)
+- [Remarks](#remarks)
+
 ## 1. Creational Design Patterns
 
 ## 1.1 Singleton.
@@ -60,9 +131,9 @@ open class NonLordFactory(private val generalLord: General, private val lord: Lo
 }
 ```
 
-### 2. Structural Patterns
+## 2. Structural Patterns
 
-## 2.1 Decorator Pattern
+### 2.1 Decorator Pattern
 
 1. The decorator pattern allows us to dynamically add additional behaviors or features to an object at runtime. In the project, we use it to enhance our player identities with special abilities, skills, or attributes. For example, we can decorate a Lord identity with the ability to CaoCao's special skill.
 
@@ -86,21 +157,19 @@ abstract class General(val name: String, val player: Player):Player by player {
 
 ## 3. Behavioral Patterns
 
-## 3.1 Command Patterns
-
-## Cards using Command Pattern
+## 3.1 Command Pattern for Cards
 
 I have implemented `Dismantle Card`, `Duel Card`, `Attack Card`, `Eight Trigrams card` using `Command Design Pattern`. The reason is -- in the Command Pattern, **commands are encapsulated as objects**, allowing them to be **parameterized and executed at different points in time**, which is perfect as first cards have no target or no specific source, but can later be parameterized and executed during play phase or when someone is attacking them, so as to dismantle.
 
 For all of these cards, they are under `Card interface/abstract class`, have suit, name, num and have `execute` property, which is Command Generator that is overwritten by every card. Also, may have changeSoure/Attacker function.
 
-### 1. Class Diagram
+### 3.1.1. Class Diagram
 
 - General invokes specific card card, which executes a specific command, based on the `execute` property, which is CommandGenerator that is overwritten by every card
 
 ![CommandPattern](screenshots/CommandPattern.png)
 
-### 2. Code
+### 3.1.2. Code
 
 - Card Interface
 
@@ -139,13 +208,13 @@ open fun drawPhrase()
 
 ## Now, each of the Cards in Detail...
 
-## Feature: Duel Card + Alienation of Diao Chan
+## 3.2 Duel Card + Alienation of Diao Chan
 
-### 1. Overview
+### 3.2.1. Overview
 
 The Duel card is a powerful tool used in the War of Three Kingdoms game to inflict 1 unit of health damage to the loser of a duel. Additionally, it often results in the elimination of all the Attack (杀) cards held by one or both players involved in the duel. We use it to enable `Diao Chan`'s `[Alienation]' skill, where she chooses 2 male players to duel each other.
 
-### 2. Feature Description
+### 3.2.2. Feature Description
 
 The Duel card enables players to engage in head-to-head combat, challenging a target player of their choice. The card is then discarded into the discard pile. The selection of the target player is not restricted by range, providing flexibility in choosing opponents.
 
@@ -157,7 +226,7 @@ Furthermore, a notable side-effect of the Duel card is its tendency to eliminate
 
 By employing the Duel card strategically, Diao Chan can not only inflict health damage on their opponents but also potentially disrupt their opponents' Attack card capabilities, gaining an advantageous position in the game.
 
-### 3. Technical Description
+### 3.2.3. Technical Description
 
 Technical Description:
 
@@ -183,7 +252,7 @@ class DuelCard(name: String, num: String, suit: String, private var source: Gene
 }
 ```
 
-### 4. How Duel Card is used
+### 3.2.4. How Duel Card is used
 
 - Diao Chan initializes duel between two male players
 
@@ -271,31 +340,31 @@ open fun beingChallenged(attacker: General): Boolean {
 }
 ```
 
-### 5. Simulation Result
+### 3.2.5. Simulation Result
 
 ![Duel Card](screenshots/DuelCard-1.png)
 
 Here, Diao Chan activates the Alienation skill and selects two male players to duel each other. Them Diao Chan removes the card and discards cards to suit currentHP.
 
-### 6. Class Diagram
+### 3.2.6. Class Diagram
 
 ![Duel Card](screenshots/DuelCard-2.png)
 
-### 7. Sequence Diagram
+### 3.2.7. Sequence Diagram
 
 ![Duel Card](screenshots/DuelCard-3.png)
 
-### 8. Testing Considerations
+### 3.2.8. Testing Considerations
 
 Since in our game, Duel Card is used only for Diao Chan, it is not very frequent. When testing, make ure Diao Chan is in the game.
 
-## Feature: Attack Card
+## 3.3 Attack Card
 
-### 1. Overview
+### 3.3.1. Overview
 
 One of the base cards in the game, which can reduce the currentHP of the target and even kill it, making the game end. Attack Card is later used as a parent of other Attack Cards.
 
-### 2. Technical Description:
+### 3.3.2. Technical Description:
 
 - The `AttackCard` class represents a card used for attacking in the game.
 - It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
@@ -334,7 +403,7 @@ open class AttackCard(name: String, num: String, suit: String, var attacker: Gen
 }
 ```
 
-### 3. Code
+### 3.3.3. Code
 
 When Attack Card is invoked, it executes `beingAttacked(attacked)` on the target player's instance.
 
@@ -386,27 +455,27 @@ fun useAttackCard(attacker: General): Boolean {
 }
 ```
 
-### 4. Simulation Result
+### 3.3.4. Simulation Result
 
 ![Attack Card](screenshots/AttackCard-1.png)
 
 Here, Sun Quan uses Attack Card against Hua Xiong. `beingAttacked(attacker)` gets activated for Hua Xiong. Hua Xiong will use his skill later.
 
-### 5. Class Diagram
+### 3.3.5. Class Diagram
 
 ![Attack Card2](screenshots/AttackCard-2.png)
 
-### 6. Sequence Diagram
+### 3.3.6. Sequence Diagram
 
 ![Attack Card2](screenshots/AttackCard-3.png)
 
-## Feature: Eight Trigrams
+## 3.4. Eight Trigrams
 
-### 1. Overview
+### 3.4.1. Overview
 
 The Eight Trigrams card is a powerful defensive card that automatically triggers the dodge (闪) ability whenever it is required. It relies on passing a judgement card to determine its activation. If the judgement card is a red suit (hearts or diamonds), the Eight Trigrams card will automatically dodge the attack, providing a significant advantage in combat.
 
-### 2. Feature Description
+### 3.4.2. Feature Description
 
 1. Automatic Dodge: The Eight Trigrams card offers an automatic dodge ability whenever a dodge is required during gameplay. It eliminates the need for the player to manually play a dodge card and relies on the judgement card to activate the dodge.
 
@@ -414,7 +483,7 @@ The Eight Trigrams card is a powerful defensive card that automatically triggers
 
 3. Defensive Advantage: By equipping the Eight Trigrams card during a player's turn, it provides a reliable defense mechanism. The player can rely on the card to automatically dodge incoming attacks, potentially turning the tide of battle in their favor.
 
-### 3. Technical Description
+### 3.4.3. Technical Description
 
 - The `EightTrigrams` class represents a card with the ability to dodge attacks.
 - It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
@@ -422,7 +491,7 @@ The Eight Trigrams card is a powerful defensive card that automatically triggers
 - When the command function is executed during the judgement phase, it checks if the player is a `General` and calls the `dodge()` method on the player, passing the suit and the attacker (`attacker` property) as parameters.
 - If the card is red suit, it will set `autoDodge` to true, so that when the player is attacked next time, dodge gets activated.
 
-### 4. Code
+### 3.4.4. Code
 
 ```
 class EightTrigrams(name: String, num: String, suit: String) : Card(name, num, suit) {
@@ -484,35 +553,35 @@ fun dodge(suit: String) {
     }
 ```
 
-### 5. Simulation results
+### 3.4.5. Simulation results
 
 - Activated `autoDodge`.
   ![EightTrigrams](screenshots/EightTrigrams.png)
 - Could not activate `autoDodge`
   ![EightTrigrams](screenshots/EightTrigrams-2.png)
 
-### 6. Class Diagram
+### 3.4.6. Class Diagram
 
 ![EightTrigrams](screenshots/EightTrigrams-3.png)
 
-### 7. Sequence Diagram
+### 3.4.7. Sequence Diagram
 
 ![EightTrigrams](screenshots/EightTrigrams-4.png)
 
-## Feature: Dismantle Card
+## 3.5. Dismantle Card
 
-### 1. Overview
+### 3.5.1. Overview
 
 The Dismantle card is a versatile and powerful card that allows players to dismantle and remove any card from any player during gameplay. It can be used to target equipped weapons, armor, horses, cards in hand, and even specialized cards like Time-Delay Tool Cards and Lightning. It offers players a strategic advantage by allowing them to disrupt their opponents' strategies and remove key cards from play.
 
-### 2. Technical Description
+### 3.5.2. Technical Description
 
 - The `DismantleCard` class represents a card used for dismantling cards from the target player's hand.
 - It extends the `Card` class and overrides the `execute` property, which is a `CommandGenerator`.
 - The `execute` property takes a target player and returns a command function that, when executed, performs the dismantle action on the target player.
 - When the command function is executed, it checks if the target is a `General` and calls the `dismantleCard()` method on the target.
 
-### 3. Code
+### 3.5.3. Code
 
 ```
 class DismantleCard(name: String, num: String, suit: String) : Card(name, num, suit) {
@@ -573,27 +642,27 @@ fun dismantleCard() {
 }
 ```
 
-### 4. Simulation results
+### 3.5.4. Simulation results
 
 Here, Xu Chu was being attacked by Lv Bu, but Lv Bu used dismantle card and made Lv Bu lose one random card. Other that that, Lv Bu also removed attack card. Xu Chu removed Dismantle card.
 
 ![Dismantle Card](screenshots/DismantleCard.png)
 
-### 5. Class Diagram
+### 3.5.5. Class Diagram
 
 ![Dismantle Card](screenshots/DismantleCard-3.png)
 
-### 6. Sequence Diagram
+### 3.5.6. Sequence Diagram
 
 ![Dismantle Card](screenshots/DismantleCard-2.png)
 
-## Feature: Hua Xiong Triumphant
+## 3.6. Hua Xiong Triumphant
 
-### 1. Overview
+### 3.6.1. Overview
 
 When a character deals damage to Hua Xiong with an [Attack] card that belongs to the Red suit, he/she recover 1-point health or draw 1 card.
 
-### 2. Code
+### 3.6.2. Code
 
 - Override `beingAttacked(attacker)` for Hua Xiong. If damage is done, find Attack Card that was used to inflict damage from the top of the discarded pile using `CardManager`, check suit.
 - According to the suit, attacker either draws one card or recovers 1 HP.
@@ -646,7 +715,7 @@ class HuaXiong(player: Player): NeutralGeneral("Hua Xiong",player) {
 }
 ```
 
-### 3. Simulation Result
+### 3.6.3. Simulation Result
 
 ![Dismantle Card](screenshots/Triumphant-1.png)
 
@@ -1009,7 +1078,7 @@ fun isGameOver(): Boolean {
 
 While the `isGameOver()` function does not adhere to a specific design pattern, it incorporates several design concepts that enhance the structure and functionality of the War of Three Kingdoms game.
 
-## 4. Class Diagram
+### 4. Class Diagram
 
 ![Game Over Screenshot](screenshots/IsGameOver-1.jpg)
 
