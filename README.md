@@ -1,6 +1,18 @@
-## War of Three Kingdoms Documentation
+## 🃏 War of Three Kingdoms using Design Patterns 🃏
 
-- [War of Three Kingdoms Documentation](#war-of-three-kingdoms-documentation)
+## About
+
+["War of The Three Kingdoms - Standard"](http://wtkgames.com/standard.html) is a card game that allows players to assume the roles of mighty warlords from the Three Kingdoms period. With elements of role play, strategy, and deception, the game offers exciting battles that can be enjoyed with numerous players.
+
+Design patterns provide reusable solutions to common software design problems, offering structure, flexibility, and maintainability to our code. By incorporating design patterns in this game, I ensured that code follows best practices and is easily extensible.
+
+Throughout this game, I learned the concept of creational, structural, behavioral design patterns to implement various aspects of this card game.
+
+## Table of Contents
+
+- [🃏 War of Three Kingdoms using Design Patterns 🃏](#-war-of-three-kingdoms-using-design-patterns-)
+- [About](#about)
+- [Table of Contents](#table-of-contents)
 - [1. Creational Design Patterns](#1-creational-design-patterns)
 - [1.1 Singleton.](#11-singleton)
 - [1.2 Factory Pattern - Abstract Factory Pattern](#12-factory-pattern---abstract-factory-pattern)
